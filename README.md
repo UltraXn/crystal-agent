@@ -1,69 +1,88 @@
-# 🧠 CrystalTides Agent (Game-Bridge)
+# 🌉 CrystalTides Game Bridge
 
-Este repositorio contiene la inteligencia in-game para CrystalTides. Actúa como un puente entre el proceso Java de Minecraft y la lógica nativa de alto rendimiento.
+> **The native heart of the player's client.**
 
-## 🏗️ Arquitectura
+![CrystalTides Game Agent Banner](https://raw.githubusercontent.com/CrystalTides/art/main/game-agent-banner.png)
 
-El Agente utiliza un enfoque de "Doble Núcleo":
+## 💎 Overview
 
-1.  **Agente Java (`java-agent`)**: Utiliza Java Instrumentation para engancharse al proceso del juego durante el inicio.
-2.  **Core Nativo (`native-core`)**: Una librería en Rust de alto rendimiento a la que se accede mediante JNI (Java Native Interface) para renderizado y lógica en tiempo real.
-
-## 📁 Estructura del Proyecto
-
-- `java-agent/`: Proyecto Java basado en Maven. El punto de entrada es `CrystalAgent.java`.
-- `native-core/`: Crate de Rust que exporta símbolos compatibles con C para JNI.
-- `test-env/`: Un entorno de ejecución mínimo para probar el agente sin lanzar un cliente completo de Minecraft.
-
-## 🚀 Empezando
-
-### Requisitos Previos
-
-- JDK 17 o superior
-- Maven
-- Rust (última versión estable) + `cargo`
-
-### Compilación
-
-Puedes compilar todo el stack usando los scripts del `package.json` en la raíz:
-
-```bash
-# Compilar los componentes de Java y Rust
-npm run build
-
-# O individualmente
-npm run build:java
-npm run build:rust
-```
-
-El proceso de compilación generará:
-
-- `java-agent/target/game-bridge-1.0-SNAPSHOT.jar`
-- `native-core/target/release/game_bridge_core.dll` (en Windows)
-
-### Probar en el Entorno de Pruebas
-
-La carpeta `test-env` está pre-configurada para pruebas rápidas.
-Ejecuta el script de lanzamiento o usa:
-
-```bash
-java -javaagent:agent.jar com.crystaltides.test.FakeMinecraft
-```
-
-## 🔌 Integración
-
-El Launcher se comunica con este agente inyectándolo como un `-javaagent` en los argumentos de la JVM.
-
-```bash
-java -Xmx4G -javaagent:crystal-agent.jar -cp ... net.minecraft.client.main.Main
-```
-
-## 🧬 Hoja de Ruta (Roadmap)
-
-- [ ] **Hooks de OpenGL**: Interceptar llamadas de renderizado para elementos HUD de baja latencia.
-- [ ] **Bus de Eventos**: Compartir eventos del juego (ubicación del jugador, vida) con el Launcher.
-- [ ] **Presencia**: Integración de Discord Deep Presence desde dentro del proceso.
+El **CrystalTides Game Bridge** (o Game Agent) es un componente cliente experimental diseñado para integraciones nativas profundas. A diferencia del bridge del servidor, este agente vive dentro del proceso de Minecraft del jugador, permitiendo capacidades que van más allá de lo que un mod estándar puede ofrecer.
 
 ---
 
-Parte del ecosistema CrystalTides. Separado para una modularidad con cero dependencias.
+## 🌟 Core Features
+
+- 🖥️ **Custom HUDs & Overlays**: Renderizado directo sobre la interfaz de Minecraft para información de misiones, staff y eventos.
+- 📡 **Native Telemetry**: Recolección de métricas de rendimiento y red desde la perspectiva del jugador.
+- 🛠️ **JVM Injection**: Se engancha al arranque del juego como un `-javaagent` para optimizaciones dinámicas.
+- ⚡ **Rust-Native Performance**: Núcleo escrito en Rust para tareas pesadas sin afectar el GC de Java.
+- 🎮 **Premium Interactions**: Futuras capacidades de interacción enriquecida exclusivas para usuarios del launcher oficial.
+
+---
+
+## 🏗️ Architecture
+
+El Game Bridge opera como un puente entre el ecosistema nativo de CrystalTides y el runtime de Java de Minecraft:
+
+```mermaid
+graph TD
+    subgraph "Launcher Control"
+        L[CrystalTides Launcher] -->|Inject| MC[Minecraft Process]
+    end
+
+    subgraph "In-Game Environment"
+        MC -->|Load| JA[Java Agent]
+        JA -->|FFI| RC[Rust Core Performance]
+        RC -->|System Access| HW[Hardware/Network]
+    end
+
+    subgraph "Cloud / Web"
+        RC <-->|Sync| WS[Web Server]
+    end
+```
+
+> [!NOTE]
+> **Estado de Desarrollo**: Este es un componente **experimental**. No es obligatorio para entrar al servidor, pero habilita características premium en el launcher oficial.
+
+---
+
+## 🛠️ Tech Stack
+
+| Componente | Tecnología | Propósito |
+| :--- | :--- | :--- |
+| **Injection** | Java Instrumentation API | Enganche en el bytecode de Minecraft |
+| **Logic Core** | [Rust](https://www.rust-lang.org) | Cómputo de alto rendimiento y seguridad |
+| **Communication** | JNI / Dart FFI | Interoperabilidad Java <-> Rust |
+| **UI Rendering** | OpenGL / Dear ImGui | Overlays nativos sobre el juego |
+
+---
+
+## 🚀 Desarrollo & Build
+
+### 🛠️ Entorno Local
+
+1.  **Instalar dependencias nativas:**
+    Asegúrate de tener `cargo` (Rust) y un `JDK 17+` instalado.
+2.  **Compilar el puente:**
+    ```bash
+    npm run build
+    ```
+    *Este comando orquesta la compilación del binario en Rust y el empaquetado del JAR del agente.*
+
+---
+
+## 🗺️ Roadmap Experimental
+
+- [ ] **Rich In-Game Menu**: Menú de configuración del launcher accesible directamente desde el juego (`Shift + Tab`).
+- [ ] **Instant Replay integration**: Captura de clips de gameplay delegada al núcleo de Rust.
+- [ ] **SpacetimeDB Telemetry**: Envío de métricas de red en tiempo real para optimizar el routing de los jugadores.
+
+---
+
+> [!WARNING]
+> **Uso avanzado**: La inyección de agentes Java puede ser detectada por algunos anti-cheats externos. Este componente está diseñado para ser usado exclusivamente dentro del ecosistema **CrystalTides**.
+
+---
+
+> [!NOTE]
+> Este repositorio forma parte del monorepo de **CrystalTides**. Para más información sobre el ecosistema completo, visita el [README Principal](../../projects/README.md).
